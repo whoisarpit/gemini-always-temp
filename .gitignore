@@ -1,1 +1,4 @@
 .env
+.amo-upload-uuid
+gemini-always-temp.zip
+web-ext-artifacts/
