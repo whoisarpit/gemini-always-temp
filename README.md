@@ -7,7 +7,7 @@ Click the toolbar icon to toggle on (blue) or off (grey).
 ## Install
 
 - **Firefox:** [Install from Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/gemini-always-temporary-chat/)
-- **Chrome:** Coming soon
+- **Chrome:** [Install from Chrome Web Store](https://chromewebstore.google.com/detail/gemini-always-temporary-c/kelpmaddlmkdagkfkmnlpjhokcopfnhl)
 
 ## Development
 
