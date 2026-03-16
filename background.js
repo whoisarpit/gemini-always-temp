@@ -1,6 +1,6 @@
 function updateIcon(enabled) {
   browser.browserAction.setIcon({
-    path: enabled ? "icon.svg" : "icon-grey.svg",
+    path: enabled ? "icon-48.png" : "icon-grey-48.png",
   });
 }
 

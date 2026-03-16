@@ -1,0 +1,18 @@
+{
+  "categories": {
+    "firefox": ["privacy-security"]
+  },
+  "summary": {
+    "en-US": "One-click toggle to always open Google Gemini in temporary chat mode."
+  },
+  "description": {
+    "en-US": "Tired of manually enabling temporary chat every time you open Gemini?\n\nThis extension adds a simple toggle to your toolbar. When enabled, it automatically activates temporary chat mode whenever you visit gemini.google.com — so your conversations are never saved to your Gemini Apps Activity.\n\nClick the toolbar icon to toggle on (blue) or off (grey). That's it."
+  },
+  "tags": ["privacy", "google", "chat", "security"],
+  "homepage": {
+    "en-US": "https://github.com/whoisarpit/gemini-always-temp"
+  },
+  "version": {
+    "license": "MIT"
+  }
+}
