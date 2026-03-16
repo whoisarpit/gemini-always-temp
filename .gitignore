@@ -1,4 +1,4 @@
 .env
-.amo-upload-uuid
-gemini-always-temp.zip
-web-ext-artifacts/
+firefox/.amo-upload-uuid
+*.zip
+firefox/web-ext-artifacts/
