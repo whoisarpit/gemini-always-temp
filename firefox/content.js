@@ -1,20 +1,54 @@
+function isTempChatActive() {
+  const button =
+    document.querySelector('[data-test-id="temp-chat-button"]') ||
+    document.querySelector('button[aria-label*="Temporary chat" i]');
+  if (
+    button &&
+    (button.getAttribute("aria-pressed") === "true" ||
+      button.getAttribute("aria-checked") === "true" ||
+      button.classList.contains("active") ||
+      button.classList.contains("selected"))
+  ) {
+    return true;
+  }
+
+  return !!document.querySelector('textarea[placeholder*="temporary chat" i]');
+}
+
 function clickTempChat() {
-  const btn = document.querySelector('button[data-test-id="temp-chat-button"]');
-  if (!btn) return false;
-  const isActive =
-    btn.classList.contains("active") ||
-    btn.getAttribute("aria-pressed") === "true";
-  if (!isActive) btn.click();
+  if (isTempChatActive()) return true;
+
+  const button =
+    document.querySelector('[data-test-id="temp-chat-button"]') ||
+    document.querySelector('button[aria-label*="Temporary chat" i]');
+  if (!button) return false;
+
+  button.click();
   return true;
 }
 
 function waitAndClick() {
   if (clickTempChat()) return;
+
   const observer = new MutationObserver(() => {
-    if (clickTempChat()) observer.disconnect();
+    if (clickTempChat()) cleanup();
   });
+
+  const intervalId = setInterval(() => {
+    if (clickTempChat()) cleanup();
+  }, 500);
+
+  const timeoutId = setTimeout(() => {
+    cleanup();
+  }, 15000);
+
+  function cleanup() {
+    observer.disconnect();
+    clearInterval(intervalId);
+    clearTimeout(timeoutId);
+  }
+
   observer.observe(document.body, { childList: true, subtree: true });
-  setTimeout(() => observer.disconnect(), 15000);
 }
 
 browser.storage.local.get("enabled").then((result) => {

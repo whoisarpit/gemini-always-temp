@@ -15,6 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Read version from manifest
         id: version
         run: echo "version=$(jq -r .version chrome/manifest.json)" >> "$GITHUB_OUTPUT"
@@ -48,39 +53,12 @@ jobs:
           name: v${{ steps.version.outputs.version }}
           files: gemini-always-temp-chrome.zip
 
-  sign-firefox:
-    needs: package
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Read version from manifest
-        id: version
-        run: echo "version=$(jq -r .version chrome/manifest.json)" >> "$GITHUB_OUTPUT"
-
-      - name: Sign Firefox extension
+      - name: Submit Firefox extension to AMO (listed)
+        if: github.event_name == 'push' && steps.check_release.outputs.exists == 'false'
         run: |
           npx web-ext sign \
             --source-dir=firefox/ \
-            --artifacts-dir=web-ext-artifacts/ \
-            --channel=unlisted \
+            --channel=listed \
             --api-key="${{ secrets.AMO_JWT_ISSUER }}" \
-            --api-secret="${{ secrets.AMO_JWT_SECRET }}"
-          mv web-ext-artifacts/*.xpi gemini-always-temp-firefox.xpi
-
-      - name: Upload Firefox extension artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: gemini-always-temp-firefox
-          path: gemini-always-temp-firefox.xpi
-
-      - name: Upload Firefox XPI to release
-        run: gh release upload "v${{ steps.version.outputs.version }}" gemini-always-temp-firefox.xpi --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            --api-secret="${{ secrets.AMO_JWT_SECRET }}" \
+            --approval-timeout=0
