@@ -25,3 +25,25 @@ Click the toolbar icon to toggle on (blue) or off (grey).
 3. Enable "Developer mode"
 4. Click "Load unpacked"
 5. Select the `chrome/` directory
+
+## CI Publish Automation
+
+Pushes to `main` run `.github/workflows/package.yml`, which now:
+
+1. Packages Chrome zip and creates a GitHub release for the manifest version.
+2. Uploads and publishes the Chrome extension through Chrome Web Store API v2 (if configured).
+3. Submits Firefox to AMO listed channel.
+
+### Required GitHub Secrets
+
+Configure these repository secrets to enable automatic Chrome publish:
+
+- `CWS_PUBLISHER_ID`
+- `CWS_EXTENSION_ID`
+- `CWS_CLIENT_ID`
+- `CWS_CLIENT_SECRET`
+- `CWS_REFRESH_TOKEN`
+- `AMO_JWT_ISSUER`
+- `AMO_JWT_SECRET`
+
+If the Chrome secrets are missing, the workflow will skip Chrome API publish and still continue with release + Firefox submission.

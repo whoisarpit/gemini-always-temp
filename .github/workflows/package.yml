@@ -53,6 +53,52 @@ jobs:
           name: v${{ steps.version.outputs.version }}
           files: gemini-always-temp-chrome.zip
 
+      - name: Resolve Chrome Web Store publish config
+        if: github.event_name == 'push' && steps.check_release.outputs.exists == 'false'
+        id: cws_config
+        run: |
+          if [ -n "${{ secrets.CWS_PUBLISHER_ID }}" ] && [ -n "${{ secrets.CWS_EXTENSION_ID }}" ] && [ -n "${{ secrets.CWS_CLIENT_ID }}" ] && [ -n "${{ secrets.CWS_CLIENT_SECRET }}" ] && [ -n "${{ secrets.CWS_REFRESH_TOKEN }}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Chrome Web Store publish skipped: set CWS_PUBLISHER_ID, CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN."
+          fi
+
+      - name: Get Chrome Web Store access token
+        if: github.event_name == 'push' && steps.check_release.outputs.exists == 'false' && steps.cws_config.outputs.enabled == 'true'
+        id: cws_token
+        run: |
+          TOKEN_RESPONSE=$(curl -sS -X POST https://oauth2.googleapis.com/token \
+            -d "client_id=${{ secrets.CWS_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.CWS_CLIENT_SECRET }}" \
+            -d "refresh_token=${{ secrets.CWS_REFRESH_TOKEN }}" \
+            -d "grant_type=refresh_token")
+          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token // empty')
+          if [ -z "$ACCESS_TOKEN" ]; then
+            echo "Failed to get Chrome Web Store access token"
+            echo "$TOKEN_RESPONSE"
+            exit 1
+          fi
+          echo "access_token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Chrome extension to Chrome Web Store
+        if: github.event_name == 'push' && steps.check_release.outputs.exists == 'false' && steps.cws_config.outputs.enabled == 'true'
+        run: |
+          curl --fail-with-body -sS -X POST \
+            -H "Authorization: Bearer ${{ steps.cws_token.outputs.access_token }}" \
+            -H "x-goog-api-version: 2" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @gemini-always-temp-chrome.zip \
+            "https://chromewebstore.googleapis.com/upload/v2/publishers/${{ secrets.CWS_PUBLISHER_ID }}/items/${{ secrets.CWS_EXTENSION_ID }}:upload"
+
+      - name: Publish Chrome extension to Chrome Web Store
+        if: github.event_name == 'push' && steps.check_release.outputs.exists == 'false' && steps.cws_config.outputs.enabled == 'true'
+        run: |
+          curl --fail-with-body -sS -X POST \
+            -H "Authorization: Bearer ${{ steps.cws_token.outputs.access_token }}" \
+            -H "x-goog-api-version: 2" \
+            "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CWS_PUBLISHER_ID }}/items/${{ secrets.CWS_EXTENSION_ID }}:publish"
+
       - name: Submit Firefox extension to AMO (listed)
         if: github.event_name == 'push' && steps.check_release.outputs.exists == 'false'
         run: |
